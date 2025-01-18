@@ -1,30 +1,19 @@
-#include "raylib.h"
+#include "GraphicsHandler.h"
 
-int main() {
-    // Initialize the window with width, height, and title
-    InitWindow(800, 600, "Raylib Example");
+int main() 
+{
+    bool screenMatrix[2048] = { 0 };
 
-    // Set the target FPS (frames per second)
-    SetTargetFPS(60);
+    GraphicsHandler graphicsHandler;
+    graphicsHandler.init();
 
     // Main game loop
-    while (!WindowShouldClose()) {
-        // Update the game logic here (e.g., handle input, update objects)
-
-        // Start drawing
-        BeginDrawing();
-        
-        ClearBackground(RAYWHITE);  // Clear the screen with a white color
-
-        // Draw something on the screen
-        DrawText("Hello, Raylib!", 190, 200, 20, RED);
-
-        // End drawing
-        EndDrawing();
+    while (!WindowShouldClose()) 
+    {
+        graphicsHandler.drawScreen(screenMatrix); 
     }
 
-    // Deinitialize resources before exiting
-    CloseWindow();  // Close window and OpenGL context
+    graphicsHandler.close();
 
     return 0;
 }
