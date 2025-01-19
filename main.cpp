@@ -1,16 +1,16 @@
 #include "GraphicsHandler/GraphicsHandler.h"
+#include "Chip8/Chip8.h"
 
 int main() 
 {
-    bool screenMatrix[2048] = { 0 };
+    Chip8 chip8;
 
     GraphicsHandler graphicsHandler;
     graphicsHandler.init();
 
-    // Main game loop
     while (!WindowShouldClose()) 
     {
-        graphicsHandler.drawScreen(screenMatrix); 
+        graphicsHandler.drawScreen(chip8.getScreenMatrix()); 
     }
 
     graphicsHandler.close();

@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Add the executable and source files
-add_executable(emulator main.cpp GraphicsHandler/GraphicsHandler.cpp)
+add_executable(emulator main.cpp GraphicsHandler/GraphicsHandler.cpp Chip8/Chip8.cpp)
 
 # Include directories (if needed)
 target_include_directories(emulator PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

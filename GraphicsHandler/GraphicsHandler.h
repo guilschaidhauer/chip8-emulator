@@ -1,3 +1,4 @@
+#include <array>
 #include "raylib.h"
 
 class GraphicsHandler
@@ -8,7 +9,7 @@ public:
 
     void init();
     void close();
-    void drawScreen(bool *screenMatrix);
+    void drawScreen(std::array<bool, 64 * 32> screenMatrix);
      
 private:
     const int screenWidth = 64;

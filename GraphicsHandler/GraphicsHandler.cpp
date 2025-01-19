@@ -28,7 +28,7 @@ void GraphicsHandler::drawRectangleWithScale(int x, int y)
     DrawRectangle(x * screenScale, y * screenScale, screenScale, screenScale, pixelColor);
 }
 
-void GraphicsHandler::drawScreen(bool *screenMatrix)
+void GraphicsHandler::drawScreen(std::array<bool, 64 * 32> screenMatrix)
 {
     // Start drawing
     BeginDrawing();
