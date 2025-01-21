@@ -2,6 +2,16 @@
 
 Chip8::Chip8()
 {
+    pc = 0x200;
+    I = 0;
+    sp = 0;
+
+    delayTimer = 0;
+    soundTimer = 0;
+
+    memset(V, 0, sizeof(V));
+    memset(stack, 0, sizeof(stack));
+    memset(memory, 0, sizeof(memory));
 }
 
 Chip8::~Chip8()

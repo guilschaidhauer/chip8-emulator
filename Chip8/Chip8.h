@@ -21,7 +21,7 @@ private:
 
     uint16_t stack[16];
 
-    uint8_t delay_timer, sound_timer;
+    uint8_t delayTimer, soundTimer;
 
     uint8_t memory[4096];
 
