@@ -4,6 +4,7 @@
 int main() 
 {
     Chip8 chip8;
+    chip8.loadRom("roms/singlepixel.ch8");
 
     GraphicsHandler graphicsHandler;
     graphicsHandler.init();

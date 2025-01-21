@@ -1,6 +1,8 @@
 #include <cstdint>
 #include <string>
 #include <array>
+#include <fstream>
+#include <iostream>
 
 class Chip8 
 {
@@ -9,6 +11,8 @@ public:
     ~Chip8();
 
     const std::array<bool, 64 * 32>& getScreenMatrix() const;
+
+    bool loadRom(std::string path);
 
 private:
     uint8_t V[16]; 
