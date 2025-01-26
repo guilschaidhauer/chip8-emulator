@@ -14,6 +14,8 @@ public:
 
     bool loadRom(std::string path);
 
+    void cycle();
+
 private:
     uint8_t V[16]; 
     uint16_t I, pc;
@@ -28,4 +30,6 @@ private:
     std::array<bool, 64 * 32> screenMatrix {}; 
 
     int keypad[16];
+
+    int getNibble(int opcode, int bits, int toBinaryAnd);
 };

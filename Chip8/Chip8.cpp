@@ -40,3 +40,43 @@ bool Chip8::loadRom(std::string path)
 
     return true;
 }
+
+void Chip8::cycle()
+{
+    if (pc > 0xFFF) {
+        return;
+    }
+
+    int opcode = (memory[pc] << 8) | (memory[pc + 1]);;
+
+    int opcodeMsbNibble = getNibble(opcode, 12, 0xF000);
+
+    printf("%d\n", opcode);
+    printf("%d\n", opcodeMsbNibble);
+
+    switch (opcodeMsbNibble)
+    {
+    // Sets VX to NN.
+    case 6:
+    {
+        int nibbleB = (opcode & 0x0F00) >> 8; // Second nibble (B)
+        int lowestByte = opcode & 0x00FF;     // CD part
+        V[nibbleB] = lowestByte;
+        printf("%d\n", nibbleB);
+        printf("%d\n", lowestByte);
+        break;
+    }   
+    default:
+        break;
+    }
+
+    pc += 2;
+    if (pc > 0xFFF) {
+        pc = 0x200;
+    }
+}
+
+int Chip8::getNibble(int opcode, int bits, int toBinaryAnd)
+{
+    return ((opcode & toBinaryAnd) >> bits);
+}

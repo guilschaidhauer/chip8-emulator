@@ -11,7 +11,8 @@ int main()
 
     while (!WindowShouldClose()) 
     {
-        graphicsHandler.drawScreen(chip8.getScreenMatrix()); 
+        chip8.cycle();
+        graphicsHandler.drawScreen(chip8.getScreenMatrix());
     }
 
     graphicsHandler.close();
