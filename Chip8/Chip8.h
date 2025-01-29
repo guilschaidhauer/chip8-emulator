@@ -31,5 +31,7 @@ private:
 
     int keypad[16];
 
+    void drawPixelByte(int x, int y, int byte);
+
     int getNibble(int opcode, int bits, int toBinaryAnd);
 };
