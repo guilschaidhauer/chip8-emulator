@@ -36,6 +36,9 @@ bool Chip8::loadRom(std::string path)
 
     for (int i=0x200; file.get(c); i++) {
         memory[i] = (uint8_t) c;
+
+        // Print the address and the byte being loaded
+        // printf("Loaded byte 0x%02X at address 0x%04X\n", (uint8_t) c, i);
     }
 
     return true;
@@ -56,14 +59,40 @@ void Chip8::cycle()
 
     switch (opcodeMsbNibble)
     {
+    case 0x0:
+    {
+        switch (opcode)
+        {
+        case 0x00E0:
+            screenMatrix.fill(false);
+            pc += 2;
+            break;
+        
+        default:
+            break;
+        }
+        break;
+    }
     // 6 - 6XNN - Sets VX to NN.
     case 0x6:
     {
         int nibbleB = (opcode & 0x0F00) >> 8; // Second nibble (B)
         int lowestByte = opcode & 0x00FF;     // CD part
         V[nibbleB] = lowestByte;
-        printf("%d\n", nibbleB);
-        printf("%d\n", lowestByte);
+        //printf("%d\n", nibbleB);
+        //printf("%d\n", lowestByte);
+        pc += 2;
+        break;
+    }
+    // 6 - 7XNN - Adds NN to VX (carry flag is not changed).
+    case 0x7:
+    {
+        int nibbleB = (opcode & 0x0F00) >> 8; // Second nibble (B)
+        int lowestByte = opcode & 0x00FF;     // CD part
+        V[nibbleB] += lowestByte;
+        //printf("%d\n", nibbleB);
+        //printf("%d\n", lowestByte);
+        pc += 2;
         break;
     }
     // 10 - ANNN - Sets I to the address NNN.
@@ -73,6 +102,7 @@ void Chip8::cycle()
         I = address;
         //printf("%d\n", nibbleB);
         //printf("%d\n", lowestByte);
+        pc += 2;
         break;
     }
     // 13 - DXYN - Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels.
@@ -82,21 +112,24 @@ void Chip8::cycle()
         int y = (opcode & 0x00F0) >> 4;      // Third nibble (C)
         int height = opcode & 0x000F;        // Fourth nibble (D)
 
-        // Find a way to use the sprite data to draw it
+        printf("Drawing sprite at (V[%d]=%d, V[%d]=%d), height=%d, I=0x%04X\n", x, V[x], y, V[y], height, I);
+
         for (int i = 0; i < height; i++) {
             int byte = memory[I + i];
+            printf("Sprite data[%d]: 0x%02X\n", i, memory[I + i]);
             drawPixelByte(V[x], V[y] + i, byte);
         }
 
         //printf("%d\n", nibbleB);
         //printf("%d\n", lowestByte);
+        pc += 2;
         break;
     }     
     default:
         break;
     }
 
-    pc += 2;
+    //pc += 2;
     if (pc > 0xFFF) {
         pc = 0x200;
     }

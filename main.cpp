@@ -4,7 +4,7 @@
 int main() 
 {
     Chip8 chip8;
-    chip8.loadRom("roms/ship2.ch8");
+    chip8.loadRom("roms/testProgram.ch8");
 
     GraphicsHandler graphicsHandler;
     graphicsHandler.init();
