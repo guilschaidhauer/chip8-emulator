@@ -73,6 +73,13 @@ void Chip8::cycle()
         }
         break;
     }
+    // 1 - 1NNN - Jumps to address NNN.
+    case 0x1:
+    {
+        int address = opcode & 0x0FFF;        // Address (BCD)
+        pc = address;
+        break;
+    }
     // 6 - 6XNN - Sets VX to NN.
     case 0x6:
     {
