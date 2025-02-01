@@ -68,6 +68,11 @@ void Chip8::cycle()
             pc += 2;
             break;
         
+        case 0x00EE:
+            sp--;
+            pc = stack[sp];
+            pc += 2;
+            break;
         default:
             break;
         }
@@ -78,6 +83,61 @@ void Chip8::cycle()
     {
         int address = opcode & 0x0FFF;        // Address (BCD)
         pc = address;
+        break;
+    }
+    // 2 - 2NNN - Calls subroutine at NNN.
+    case 0x2:
+    {
+        stack[sp] = pc;
+        sp++;
+
+        int address = opcode & 0x0FFF;        // Address (BCD)
+        pc = address;
+        break;
+    }
+    // 3 - 3XNN - Skips the next instruction if VX equals NN.
+    case 0x3:
+    {
+        int nibbleB = (opcode & 0x0F00) >> 8; // Second nibble (B)
+        int lowestByte = opcode & 0x00FF;     // CD part
+        
+        pc += 2;
+        
+        if (V[nibbleB] == lowestByte)
+        {
+            pc += 2;
+        }
+        
+        break;
+    }
+    // 4 - 4XNN - Skips the next instruction if VX equals NN.
+    case 0x4:
+    {
+        int nibbleB = (opcode & 0x0F00) >> 8; // Second nibble (B)
+        int lowestByte = opcode & 0x00FF;     // CD part
+        
+        pc += 2;
+        
+        if (V[nibbleB] != lowestByte)
+        {
+            pc += 2;
+        }
+        
+        break;
+    }
+    // 5 - 5XNN - Skips the next instruction if VX equals VY.
+    case 0x5:
+    {
+        int nibbleB = (opcode & 0x0F00) >> 8; // Second nibble (B)
+        int nibbleC = (opcode & 0x00F0) >> 4; // Third nibble (C) 
+        
+        pc += 2;
+        
+        if (V[nibbleB] == V[nibbleC])
+        {
+            pc += 2;
+        }
+        
         break;
     }
     // 6 - 6XNN - Sets VX to NN.
@@ -91,7 +151,7 @@ void Chip8::cycle()
         pc += 2;
         break;
     }
-    // 6 - 7XNN - Adds NN to VX (carry flag is not changed).
+    // 7 - 7XNN - Adds NN to VX (carry flag is not changed).
     case 0x7:
     {
         int nibbleB = (opcode & 0x0F00) >> 8; // Second nibble (B)
@@ -100,6 +160,21 @@ void Chip8::cycle()
         //printf("%d\n", nibbleB);
         //printf("%d\n", lowestByte);
         pc += 2;
+        break;
+    }
+   // 9 - 9XY0 - Skips the next instruction if VX does not equal VY.
+    case 0x9:
+    {
+        int nibbleB = (opcode & 0x0F00) >> 8; // Second nibble (B)
+        int nibbleC = (opcode & 0x00F0) >> 4; // Third nibble (C) 
+        
+        pc += 2;
+        
+        if (V[nibbleB] != V[nibbleC])
+        {
+            pc += 2;
+        }
+        
         break;
     }
     // 10 - ANNN - Sets I to the address NNN.
