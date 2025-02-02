@@ -162,7 +162,97 @@ void Chip8::cycle()
         pc += 2;
         break;
     }
-   // 9 - 9XY0 - Skips the next instruction if VX does not equal VY.
+    // 8 
+    case 0x8:
+    {
+        int x = (opcode & 0x0F00) >> 8; // Second nibble (B)
+        int y = (opcode & 0x00F0) >> 4; // Third nibble (C)
+        int nibbleD = opcode & 0x000F;  // Fourth nibble (D)
+        
+        switch (nibbleD)
+        {
+        // 8XY0 - Sets VX to the value of VY.
+        case 0:
+            V[x] = V[y];
+            pc += 2;
+            break;
+        // 8XY1 - Sets VX to VX or VY. (bitwise OR operation).
+        case 1:
+            V[x] |= V[y];
+            V[0xF] = 0;
+            pc += 2;
+            break;
+        // 8XY2 - Sets VX to VX and VY. (bitwise AND operation).
+        case 2:
+            V[x] &= V[y];
+            V[0xF] = 0;
+            pc += 2;
+            break;
+        // 8XY3 - Sets VX to VX xor VY.
+        case 3:
+            V[x] ^= V[y];
+            V[0xF] = 0;
+            pc += 2;
+            break;
+        // 8XY4 - Adds VY to VX. VF is set to 1 when there's an overflow, and to 0 when there is not.
+        case 4:
+            V[x] += V[y]; 
+            if (V[x] > 0xFF)
+            {
+                V[0xF] = 1;
+            } 
+            else 
+            {
+                V[0xF] = 0;
+            }
+            V[x] &= 0xFF; 
+            pc += 2;
+            break;
+        // 8XY5 - VY is subtracted from VX. VF is set to 0 when there's an underflow, and 1 when there is not. (i.e. VF set to 1 if VX >= VY and 0 if not).
+        case 5:
+            if (V[x] >= V[y])
+            {
+                V[0xF] = 1;
+            } 
+            else 
+            {
+                V[0xF] = 0;
+            }
+            V[x] -= V[y]; 
+            pc += 2;
+            break;   
+        // 8XY6 - Shifts VX to the right by 1, then stores the least significant bit of VX prior to the shift into VF.
+        case 6:
+            V[0xf] = V[x] & 0x1;
+            V[x] >>= 1;
+            pc += 2;
+            break;
+        // 8XY7 - Sets VX to VY minus VX. VF is set to 0 when there's an underflow, and 1 when there is not. (i.e. VF set to 1 if VY >= VX).
+        case 7:
+            if (V[y] > V[x])
+            {
+                V[0xF] = 1;
+            } 
+            else 
+            {
+                V[0xF] = 0;
+            }
+            V[x] = V[y] - V[x];
+            pc += 2;
+            break;
+        // 8XYE - Shifts VX to the left by 1, then sets VF to 1 if the most significant bit of VX prior to that shift was set, or to 0 if it was unset.
+        case 0xE:
+            V[0xf] = V[x] >> 7;
+            V[x] <<= 1;
+            pc += 2;
+            break;
+        default:
+            break;
+        }
+
+        break; 
+    }
+    // 9 - 9XY0 - Skips the next instruction if VX does not equal VY.
     case 0x9:
     {
         int nibbleB = (opcode & 0x0F00) >> 8; // Second nibble (B)
