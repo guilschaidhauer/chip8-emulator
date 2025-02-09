@@ -301,13 +301,39 @@ void Chip8::cycle()
     case 0xF:
     {
         int nibbleCD = opcode & 0x00FF;
+        int x = (opcode & 0x0F00) >> 8;      // Second nibble (B)
         switch (nibbleCD)
         {
+        // FX1E - Adds VX to I. VF is not affected.
+        case 0x1E:
+        {
+            I += V[x];
+            pc += 2;
+            break;
+        }
+        // FX33 - Store BCD representation of VX at memory[I]
+        case 0x33:
+        {
+            memory[I] = V[x] / 100;
+            memory[I+1] = (V[x] / 10) % 10;
+            memory[I+2] = V[x] % 10;
+            pc += 2;
+            break;
+        }
+        
+        // FX55 - Stores from V0 to VX (including VX) in memory, starting at address I. The offset from I is increased by 1 for each value written, but I itself is left unmodified
+        case 0x55:
+        {
+            for (int i=0; i<=x; i++) {
+                memory[I+i] = V[i];
+            }
+            pc += 2;
+            break;
+        }
+        // FX65 - Fills from V0 to VX (including VX) with values from memory, starting at address I. The offset from I is increased by 1 for each value read, but I itself is left unmodified.
         case 0x65:
         {
-            int nibbleB = (opcode & 0x0F00) >> 8;      // Second nibble (B)
-
-            for (int i=0; i<=nibbleB; i++) {
+            for (int i=0; i<=x; i++) {
                 V[i] = memory[I+i];
             }
             pc += 2;
