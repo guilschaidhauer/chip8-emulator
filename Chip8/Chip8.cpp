@@ -354,6 +354,18 @@ void Chip8::cycle()
     }
 }
 
+void Chip8::updateTimers()
+{
+    if (delayTimer > 0) 
+        delayTimer--;
+
+    if (soundTimer > 0) 
+    {
+        // Play sound here
+        soundTimer--;
+    }
+}
+
 void Chip8::drawPixelByte(int x, int y, int byte)
 {
     for (int bit = 7; bit >= 0; bit--)
