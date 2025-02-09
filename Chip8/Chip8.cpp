@@ -296,7 +296,28 @@ void Chip8::cycle()
         //printf("%d\n", lowestByte);
         pc += 2;
         break;
-    }     
+    }
+     // 15
+    case 0xF:
+    {
+        int nibbleCD = opcode & 0x00FF;
+        switch (nibbleCD)
+        {
+        case 0x65:
+        {
+            int nibbleB = (opcode & 0x0F00) >> 8;      // Second nibble (B)
+
+            for (int i=0; i<=nibbleB; i++) {
+                V[i] = memory[I+i];
+            }
+            pc += 2;
+            break;
+        }
+        default:
+            break;
+        }
+        break;
+    }      
     default:
         break;
     }
