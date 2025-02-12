@@ -15,6 +15,7 @@ public:
     bool loadRom(std::string path);
 
     void cycle();
+    void updateTimers();
 
 private:
     uint8_t V[16]; 
