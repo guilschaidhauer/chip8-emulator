@@ -210,19 +210,19 @@ void Chip8::cycle()
             break;
         // 8XY5 - VY is subtracted from VX. VF is set to 0 when there's an underflow, and 1 when there is not. (i.e. VF set to 1 if VX >= VY and 0 if not).
         case 5:
-            if (V[x] >= V[y])
-            {
-                V[0xF] = 1;
-            } 
-            else 
-            {
-                V[0xF] = 0;
-            }
-            V[x] -= V[y]; 
+        {
+            uint8_t vx = V[x]; 
+            uint8_t vy = V[y]; 
+
+            V[0xF] = (vx >= vy) ? 1 : 0;  
+
+            V[x] = vx - vy;  
+
             pc += 2;
-            break;   
+            break;
+        }
         // 8XY6 - Shifts VX to the right by 1, then stores the least significant bit of VX prior to the shift into VF.
-        case 6:
+        case 6: 
             V[0xf] = V[x] & 0x1;
             V[x] >>= 1;
             pc += 2;
@@ -277,6 +277,16 @@ void Chip8::cycle()
         pc += 2;
         break;
     }
+    // 11 - BNNN - Jumps to the address NNN plus V0.
+    case 0xB:
+    {
+        int address = opcode & 0x0FFF;        // Address (BCD)
+        I = address + V[0];
+        //printf("%d\n", nibbleB);
+        //printf("%d\n", lowestByte);
+        pc += 2;
+        break;
+    }
     // 13 - DXYN - Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels.
     case 0xD:
     {
@@ -284,11 +294,11 @@ void Chip8::cycle()
         int y = (opcode & 0x00F0) >> 4;      // Third nibble (C)
         int height = opcode & 0x000F;        // Fourth nibble (D)
 
-        printf("Drawing sprite at (V[%d]=%d, V[%d]=%d), height=%d, I=0x%04X\n", x, V[x], y, V[y], height, I);
+        // printf("Drawing sprite at (V[%d]=%d, V[%d]=%d), height=%d, I=0x%04X\n", x, V[x], y, V[y], height, I);
 
         for (int i = 0; i < height; i++) {
             int byte = memory[I + i];
-            printf("Sprite data[%d]: 0x%02X\n", i, memory[I + i]);
+            // printf("Sprite data[%d]: 0x%02X\n", i, memory[I + i]);
             drawPixelByte(V[x], V[y] + i, byte);
         }
 
