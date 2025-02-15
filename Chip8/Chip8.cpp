@@ -511,6 +511,11 @@ void Chip8::drawPixelByte(int x, int y, int byte)
 
             if (pixelIndex >= 0 && pixelIndex < 64 * 32) 
             {
+                // Check if there was a pixel already ON
+                if (screenMatrix[pixelIndex] == 1) {
+                    V[0xF] = 1; // Set VF if a collision happens (pixel flipped off)
+                }
+                
                 screenMatrix[pixelIndex] ^= 1;
             } 
         }
