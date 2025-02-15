@@ -29,14 +29,14 @@ Chip8::Chip8()
     delayTimer = 0;
     soundTimer = 0;
 
+    memset(V, 0, sizeof(V));
+    memset(stack, 0, sizeof(stack));
+    memset(memory, 0, sizeof(memory));
+
     for (int i = 0; i < 80; i++)
     {
         memory[i] = chip8Fontset[i];
     }
-
-    memset(V, 0, sizeof(V));
-    memset(stack, 0, sizeof(stack));
-    memset(memory, 0, sizeof(memory));
 }
 
 Chip8::~Chip8()
@@ -94,6 +94,11 @@ void Chip8::cycle()
             break;
         
         case 0x00EE:
+            if (sp == 0) 
+            {
+                printf("Stack underflow!\n");
+                return;
+            }
             sp--;
             pc = stack[sp];
             pc += 2;
@@ -113,6 +118,11 @@ void Chip8::cycle()
     // 2 - 2NNN - Calls subroutine at NNN.
     case 0x2:
     {
+        if (sp >= 16) 
+        {
+            printf("Stack overflow!\n");
+            return;
+        }
         stack[sp] = pc;
         sp++;
 
@@ -221,18 +231,13 @@ void Chip8::cycle()
             break;
         // 8XY4 - Adds VY to VX. VF is set to 1 when there's an overflow, and to 0 when there is not.
         case 4:
-            V[x] += V[y]; 
-            if (V[x] > 0xFF)
-            {
-                V[0xF] = 1;
-            } 
-            else 
-            {
-                V[0xF] = 0;
-            }
-            V[x] &= 0xFF; 
+        {
+            uint16_t sum = V[x] + V[y]; // Use a wider type to detect overflow
+            V[0xF] = (sum > 0xFF) ? 1 : 0; // Set VF based on overflow
+            V[x] = sum & 0xFF; // Ensure VX remains an 8-bit value
             pc += 2;
-            break;
+            break; 
+        }
         // 8XY5 - VY is subtracted from VX. VF is set to 0 when there's an underflow, and 1 when there is not. (i.e. VF set to 1 if VX >= VY and 0 if not).
         case 5:
         {
@@ -306,7 +311,7 @@ void Chip8::cycle()
     case 0xB:
     {
         int address = opcode & 0x0FFF;        // Address (BCD)
-        I = address + V[0];
+        pc = address + V[0];
         //printf("%d\n", nibbleB);
         //printf("%d\n", lowestByte);
         pc += 2;
@@ -389,10 +394,11 @@ void Chip8::cycle()
                     V[x] = (uint8_t) i;
                 }
             }
-            if (keyPressed)
+            if (!keyPressed) 
             {
-                pc += 2;
+                return; 
             }
+            pc += 2;
             break;
         }
         // FX15 - Sets the delay timer to VX.
@@ -412,6 +418,7 @@ void Chip8::cycle()
         // FX1E - Adds VX to I. VF is not affected.
         case 0x1E:
         {
+            V[0xF] = (I + V[x] > 0xFFF) ? 1 : 0;
             I += V[x];
             pc += 2;
             break;
@@ -492,12 +499,10 @@ void Chip8::drawPixelByte(int x, int y, int byte)
             // The pixel is ON
             int pixelIndex = y * 64 + (x + 7 - bit);
 
-            // XOR operator
-            if (screenMatrix[pixelIndex]) {
-                screenMatrix[pixelIndex] = false;  
-            } else {
-                screenMatrix[pixelIndex] = true; 
-            }
+            if (pixelIndex >= 0 && pixelIndex < 64 * 32) 
+            {
+                screenMatrix[pixelIndex] ^= 1;
+            } 
         }
     }
 }
