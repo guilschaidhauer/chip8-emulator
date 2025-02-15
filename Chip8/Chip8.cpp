@@ -317,6 +317,16 @@ void Chip8::cycle()
         pc += 2;
         break;
     }
+     // 12 - CXNN - Sets VX to the result of a bitwise and operation on a random number (Typically: 0 to 255) and NN..
+    case 0xC:
+    {
+        int x = (opcode & 0x0F00) >> 8;
+        int nibbleCD = opcode & 0x00FF;
+        uint8_t randomByte = rand() % 256; 
+        V[x] = randomByte & nibbleCD; 
+        pc += 2; 
+        break;
+    }
     // 13 - DXYN - Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels.
     case 0xD:
     {
