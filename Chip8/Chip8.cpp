@@ -2,12 +2,37 @@
 
 Chip8::Chip8()
 {
+    unsigned char chip8Fontset[80] =
+    {
+            0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+            0x20, 0x60, 0x20, 0x20, 0x70, // 1
+            0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+            0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+            0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+            0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+            0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+            0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+            0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+            0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+            0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+            0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+            0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+            0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+            0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+            0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+    };
+
     pc = 0x200;
     I = 0;
     sp = 0;
 
     delayTimer = 0;
     soundTimer = 0;
+
+    for (int i = 0; i < 80; i++)
+    {
+        memory[i] = chip8Fontset[i];
+    }
 
     memset(V, 0, sizeof(V));
     memset(stack, 0, sizeof(stack));
@@ -345,10 +370,56 @@ void Chip8::cycle()
         int x = (opcode & 0x0F00) >> 8;      // Second nibble (B)
         switch (nibbleCD)
         {
+        // FX07 - Sets VX to the value of the delay timer.
+        case 0x07:
+        {
+            V[x] = delayTimer;
+            pc += 2;
+            break;
+        }
+         // FX0A - A key press is awaited, and then stored in VX
+        case 0x0A:
+        {
+            bool keyPressed = false;
+            for (int i = 0; i < 16; i++)
+            {
+                if (keypad[i] != 0)
+                {
+                    keyPressed = true;
+                    V[x] = (uint8_t) i;
+                }
+            }
+            if (keyPressed)
+            {
+                pc += 2;
+            }
+            break;
+        }
+        // FX15 - Sets the delay timer to VX.
+        case 0x15:
+        {
+            delayTimer = V[x];
+            pc += 2;
+            break;
+        }
+         // FX18 - Sets the sound timer to VX.
+        case 0x18:
+        {
+            soundTimer = V[x];
+            pc += 2;
+            break;
+        }
         // FX1E - Adds VX to I. VF is not affected.
         case 0x1E:
         {
             I += V[x];
+            pc += 2;
+            break;
+        }
+        // FX29 - Sets I to the location of the sprite for the character in VX(only consider the lowest nibble). Characters 0-F (in hexadecimal) are represented by a 4x5 font.
+        case 0x29:
+        {
+            I = V[x] * 0x5;
             pc += 2;
             break;
         }
@@ -361,7 +432,6 @@ void Chip8::cycle()
             pc += 2;
             break;
         }
-        
         // FX55 - Stores from V0 to VX (including VX) in memory, starting at address I. The offset from I is increased by 1 for each value written, but I itself is left unmodified
         case 0x55:
         {
