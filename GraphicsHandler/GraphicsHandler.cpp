@@ -12,9 +12,6 @@ void GraphicsHandler::init()
 {
     // Initialize the window with width, height, and title
     InitWindow(screenWidth * screenScale, screenHeight  * screenScale, "Raylib Example");
-
-    // Set the target FPS (frames per second)
-    SetTargetFPS(60);
 }
 
 void GraphicsHandler::close()
