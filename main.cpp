@@ -4,6 +4,13 @@
 #include <chrono>
 #include <thread>
 
+uint8_t keymap[16] = {
+    KEY_X, KEY_ONE, KEY_TWO, KEY_THREE,  // 1 2 3 C
+    KEY_Q, KEY_W, KEY_E, KEY_A,         // 4 5 6 D
+    KEY_S, KEY_D, KEY_Z, KEY_C,         // 7 8 9 E
+    KEY_FOUR, KEY_R, KEY_F, KEY_V       // A 0 B F
+};
+
 int main(int argc, char* argv[]) 
 {
     if (argc < 2) 
@@ -35,6 +42,18 @@ int main(int argc, char* argv[])
     while (!WindowShouldClose()) 
     {
         auto start_time = std::chrono::high_resolution_clock::now();
+
+        for (int i = 0; i < 16; ++i) 
+        {
+            if (IsKeyDown(keymap[i]))
+            {
+                chip8.setKeypadValue(i, 1);  
+            } 
+            else 
+            {
+                chip8.setKeypadValue(i, 0);  
+            }
+        }
 
         chip8.cycle();
 

@@ -16,6 +16,7 @@ public:
 
     void cycle();
     void updateTimers();
+    void setKeypadValue(int index, int val);
 
 private:
     uint8_t V[16]; 

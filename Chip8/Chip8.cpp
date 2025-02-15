@@ -376,6 +376,11 @@ void Chip8::updateTimers()
     }
 }
 
+void Chip8::setKeypadValue(int index, int val)
+{
+    keypad[index] = val;
+}
+
 void Chip8::drawPixelByte(int x, int y, int byte)
 {
     for (int bit = 7; bit >= 0; bit--)
