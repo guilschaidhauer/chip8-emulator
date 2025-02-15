@@ -30,7 +30,7 @@ void GraphicsHandler::drawScreen(std::array<bool, 64 * 32> screenMatrix)
     // Start drawing
     BeginDrawing();
     
-    //ClearBackground(Color{56, 82, 110, 0}); 
+    ClearBackground(Color{56, 82, 110, 0}); 
 
     int y = 0;
 
