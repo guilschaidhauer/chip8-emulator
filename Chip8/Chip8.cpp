@@ -307,6 +307,37 @@ void Chip8::cycle()
         pc += 2;
         break;
     }
+    case 0xE:
+    {
+        int nibbleCD = opcode & 0x00FF;
+        int x = (opcode & 0x0F00) >> 8;      // Second nibble (B)
+
+        switch (nibbleCD)
+        {
+            // EX9E - Skips the next instruction if the key stored in VX(only consider the lowest nibble) is pressed.
+            case 0x9E:
+            {
+                pc += 2;
+                if (keypad[V[x]] != 0)
+                {
+                    pc += 2;
+                }
+                break;
+            }
+            // EXA1
+            case 0xA1:
+            {
+                pc += 2;
+                if (keypad[V[x]] == 0)
+                {
+                    pc += 2;
+                }
+                break;
+            }
+        } 
+
+        break;
+    }
      // 15
     case 0xF:
     {
