@@ -15,7 +15,7 @@ private:
     const int screenWidth = 64;
     const int screenHeight = 32;
     const int screenScale = 16;
-    const Color pixelColor = WHITE;
+    const Color pixelColor = Color{222, 161, 155, 255};
 
     void drawRectangleWithScale(int x, int y);
 };
