@@ -10,14 +10,12 @@ GraphicsHandler::~GraphicsHandler()
 
 void GraphicsHandler::init()
 {
-    // Initialize the window with width, height, and title
-    InitWindow(screenWidth * screenScale, screenHeight  * screenScale, "Raylib Example");
+    InitWindow(screenWidth * screenScale, screenHeight  * screenScale, "RAY8 - CHIP8 Emulator");
 }
 
 void GraphicsHandler::close()
 {
-    // Deinitialize resources before exiting
-    CloseWindow();  // Close window and OpenGL context
+    CloseWindow();  
 }
 
 void GraphicsHandler::drawRectangleWithScale(int x, int y)
@@ -27,10 +25,9 @@ void GraphicsHandler::drawRectangleWithScale(int x, int y)
 
 void GraphicsHandler::drawScreen(std::array<bool, 64 * 32> screenMatrix)
 {
-    // Start drawing
     BeginDrawing();
     
-    ClearBackground(Color{56, 82, 110, 0}); 
+    ClearBackground(Color{130, 5, 50, 255}); 
 
     int y = 0;
 
@@ -44,6 +41,5 @@ void GraphicsHandler::drawScreen(std::array<bool, 64 * 32> screenMatrix)
         }
     }
 
-    // End drawing
     EndDrawing();
 }
