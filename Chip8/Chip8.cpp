@@ -2,6 +2,26 @@
 
 Chip8::Chip8()
 {
+    unsigned char chip8Fontset[80] =
+    {
+            0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+            0x20, 0x60, 0x20, 0x20, 0x70, // 1
+            0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+            0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+            0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+            0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+            0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+            0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+            0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+            0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+            0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+            0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+            0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+            0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+            0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+            0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+    };
+
     pc = 0x200;
     I = 0;
     sp = 0;
@@ -12,6 +32,11 @@ Chip8::Chip8()
     memset(V, 0, sizeof(V));
     memset(stack, 0, sizeof(stack));
     memset(memory, 0, sizeof(memory));
+
+    for (int i = 0; i < 80; i++)
+    {
+        memory[i] = chip8Fontset[i];
+    }
 }
 
 Chip8::~Chip8()
@@ -69,6 +94,11 @@ void Chip8::cycle()
             break;
         
         case 0x00EE:
+            if (sp == 0) 
+            {
+                printf("Stack underflow!\n");
+                return;
+            }
             sp--;
             pc = stack[sp];
             pc += 2;
@@ -88,6 +118,11 @@ void Chip8::cycle()
     // 2 - 2NNN - Calls subroutine at NNN.
     case 0x2:
     {
+        if (sp >= 16) 
+        {
+            printf("Stack overflow!\n");
+            return;
+        }
         stack[sp] = pc;
         sp++;
 
@@ -196,33 +231,28 @@ void Chip8::cycle()
             break;
         // 8XY4 - Adds VY to VX. VF is set to 1 when there's an overflow, and to 0 when there is not.
         case 4:
-            V[x] += V[y]; 
-            if (V[x] > 0xFF)
-            {
-                V[0xF] = 1;
-            } 
-            else 
-            {
-                V[0xF] = 0;
-            }
-            V[x] &= 0xFF; 
+        {
+            uint16_t sum = V[x] + V[y]; // Use a wider type to detect overflow
+            V[0xF] = (sum > 0xFF) ? 1 : 0; // Set VF based on overflow
+            V[x] = sum & 0xFF; // Ensure VX remains an 8-bit value
             pc += 2;
-            break;
+            break; 
+        }
         // 8XY5 - VY is subtracted from VX. VF is set to 0 when there's an underflow, and 1 when there is not. (i.e. VF set to 1 if VX >= VY and 0 if not).
         case 5:
-            if (V[x] >= V[y])
-            {
-                V[0xF] = 1;
-            } 
-            else 
-            {
-                V[0xF] = 0;
-            }
-            V[x] -= V[y]; 
+        {
+            uint8_t vx = V[x]; 
+            uint8_t vy = V[y]; 
+
+            V[0xF] = (vx >= vy) ? 1 : 0;  
+
+            V[x] = vx - vy;  
+
             pc += 2;
-            break;   
+            break;
+        }
         // 8XY6 - Shifts VX to the right by 1, then stores the least significant bit of VX prior to the shift into VF.
-        case 6:
+        case 6: 
             V[0xf] = V[x] & 0x1;
             V[x] >>= 1;
             pc += 2;
@@ -277,6 +307,26 @@ void Chip8::cycle()
         pc += 2;
         break;
     }
+    // 11 - BNNN - Jumps to the address NNN plus V0.
+    case 0xB:
+    {
+        int address = opcode & 0x0FFF;        // Address (BCD)
+        pc = address + V[0];
+        //printf("%d\n", nibbleB);
+        //printf("%d\n", lowestByte);
+        pc += 2;
+        break;
+    }
+     // 12 - CXNN - Sets VX to the result of a bitwise and operation on a random number (Typically: 0 to 255) and NN..
+    case 0xC:
+    {
+        int x = (opcode & 0x0F00) >> 8;
+        int nibbleCD = opcode & 0x00FF;
+        uint8_t randomByte = rand() % 256; 
+        V[x] = randomByte & nibbleCD; 
+        pc += 2; 
+        break;
+    }
     // 13 - DXYN - Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels.
     case 0xD:
     {
@@ -284,17 +334,48 @@ void Chip8::cycle()
         int y = (opcode & 0x00F0) >> 4;      // Third nibble (C)
         int height = opcode & 0x000F;        // Fourth nibble (D)
 
-        printf("Drawing sprite at (V[%d]=%d, V[%d]=%d), height=%d, I=0x%04X\n", x, V[x], y, V[y], height, I);
+        // printf("Drawing sprite at (V[%d]=%d, V[%d]=%d), height=%d, I=0x%04X\n", x, V[x], y, V[y], height, I);
 
         for (int i = 0; i < height; i++) {
             int byte = memory[I + i];
-            printf("Sprite data[%d]: 0x%02X\n", i, memory[I + i]);
+            // printf("Sprite data[%d]: 0x%02X\n", i, memory[I + i]);
             drawPixelByte(V[x], V[y] + i, byte);
         }
 
         //printf("%d\n", nibbleB);
         //printf("%d\n", lowestByte);
         pc += 2;
+        break;
+    }
+    case 0xE:
+    {
+        int nibbleCD = opcode & 0x00FF;
+        int x = (opcode & 0x0F00) >> 8;      // Second nibble (B)
+
+        switch (nibbleCD)
+        {
+            // EX9E - Skips the next instruction if the key stored in VX(only consider the lowest nibble) is pressed.
+            case 0x9E:
+            {
+                pc += 2;
+                if (keypad[V[x]] != 0)
+                {
+                    pc += 2;
+                }
+                break;
+            }
+            // EXA1
+            case 0xA1:
+            {
+                pc += 2;
+                if (keypad[V[x]] == 0)
+                {
+                    pc += 2;
+                }
+                break;
+            }
+        } 
+
         break;
     }
      // 15
@@ -304,10 +385,58 @@ void Chip8::cycle()
         int x = (opcode & 0x0F00) >> 8;      // Second nibble (B)
         switch (nibbleCD)
         {
+        // FX07 - Sets VX to the value of the delay timer.
+        case 0x07:
+        {
+            V[x] = delayTimer;
+            pc += 2;
+            break;
+        }
+         // FX0A - A key press is awaited, and then stored in VX
+        case 0x0A:
+        {
+            bool keyPressed = false;
+            for (int i = 0; i < 16; i++)
+            {
+                if (keypad[i] != 0)
+                {
+                    keyPressed = true;
+                    V[x] = (uint8_t) i;
+                }
+            }
+            if (!keyPressed) 
+            {
+                return; 
+            }
+            pc += 2;
+            break;
+        }
+        // FX15 - Sets the delay timer to VX.
+        case 0x15:
+        {
+            delayTimer = V[x];
+            pc += 2;
+            break;
+        }
+         // FX18 - Sets the sound timer to VX.
+        case 0x18:
+        {
+            soundTimer = V[x];
+            pc += 2;
+            break;
+        }
         // FX1E - Adds VX to I. VF is not affected.
         case 0x1E:
         {
+            V[0xF] = (I + V[x] > 0xFFF) ? 1 : 0;
             I += V[x];
+            pc += 2;
+            break;
+        }
+        // FX29 - Sets I to the location of the sprite for the character in VX(only consider the lowest nibble). Characters 0-F (in hexadecimal) are represented by a 4x5 font.
+        case 0x29:
+        {
+            I = V[x] * 0x5;
             pc += 2;
             break;
         }
@@ -320,7 +449,6 @@ void Chip8::cycle()
             pc += 2;
             break;
         }
-        
         // FX55 - Stores from V0 to VX (including VX) in memory, starting at address I. The offset from I is increased by 1 for each value written, but I itself is left unmodified
         case 0x55:
         {
@@ -366,6 +494,11 @@ void Chip8::updateTimers()
     }
 }
 
+void Chip8::setKeypadValue(int index, int val)
+{
+    keypad[index] = val;
+}
+
 void Chip8::drawPixelByte(int x, int y, int byte)
 {
     for (int bit = 7; bit >= 0; bit--)
@@ -376,12 +509,15 @@ void Chip8::drawPixelByte(int x, int y, int byte)
             // The pixel is ON
             int pixelIndex = y * 64 + (x + 7 - bit);
 
-            // XOR operator
-            if (screenMatrix[pixelIndex]) {
-                screenMatrix[pixelIndex] = false;  
-            } else {
-                screenMatrix[pixelIndex] = true; 
-            }
+            if (pixelIndex >= 0 && pixelIndex < 64 * 32) 
+            {
+                // Check if there was a pixel already ON
+                if (screenMatrix[pixelIndex] == 1) {
+                    V[0xF] = 1; // Set VF if a collision happens (pixel flipped off)
+                }
+                
+                screenMatrix[pixelIndex] ^= 1;
+            } 
         }
     }
 }
