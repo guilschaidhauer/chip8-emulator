@@ -12,7 +12,7 @@ A CHIP-8 emulator written in **C++** using **Raylib** for rendering. This projec
 
 ![Screenshot 2](screenshots/tictac.png)  
 
-### Cave Diver 
+### Cave Explorer 
 
 ![Screenshot 3](screenshots/caveDiver.png)  
 
